@@ -2,24 +2,32 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import javax.validation.Validator;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 public class UserController {
 
     private Map<Integer, User> users = new HashMap<>();
+    private int id;
 
     @PostMapping("/users")
-    public User addUser(@RequestBody User user) throws ValidationException {
+    public User addUser(@RequestBody User user) throws ValidationException, UserAlreadyExistException {
         validate(user);
-        user.setId(1);
+        if (users.values().stream().filter(u -> u.getEmail().equals(user.getEmail())).count() > 0) {
+            log.error("Пользователь уже существует: email={}", user.getEmail());
+            throw new UserAlreadyExistException(user.getEmail());
+        }
+        user.setId(++id);
         users.put(user.getId(), user);
         log.info("Добавлен пользотваель c id={}, login={}", user.getId(), user.getLogin());
         return user;
@@ -44,17 +52,17 @@ public class UserController {
 
     private void validate(User user) throws ValidationException {
         ValidationException ex;
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
             ex = new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
             log.error(ex.getMessage());
             throw ex;
         }
-        if (user.getLogin() == null || user.getLogin().contains(" ")) {
+        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
             ex = new ValidationException("Логин не может быть пустым и содержать пробелы");
             log.error(ex.getMessage());
             throw ex;
         }
-        if (user.getName() == null) {
+        if (user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {

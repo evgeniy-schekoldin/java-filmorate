@@ -1,6 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -11,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserControllerTest {
 
     @Test
-    void userCreationTestWithCorrectInput() throws ValidationException {
+    void userCreationTestWithCorrectInput() throws ValidationException, UserAlreadyExistException {
         User user = new User();
         user.setEmail("test@test.ru");
         user.setLogin("test");
@@ -24,10 +28,11 @@ class UserControllerTest {
         assertEquals(expectedSize, size);
     }
 
-    @Test
-    void userCreationTestWithIncorrectEmail() throws ValidationException {
+    @ParameterizedTest
+    @ValueSource(strings={"test.ru", ""})
+    void userCreationTestWithIncorrectEmail(String email) {
         User user = new User();
-        user.setEmail("testtest.ru");
+        user.setEmail(email);
         user.setLogin("test");
         user.setName("test");
         user.setBirthday(LocalDate.of(2000,01,01));
@@ -42,11 +47,12 @@ class UserControllerTest {
         assertEquals(expectedMessage, message);
     }
 
-    @Test
-    void userCreationTestWithIncorrectLogin() throws ValidationException {
+    @ParameterizedTest
+    @ValueSource(strings={"", "lo gin"})
+    void userCreationTestWithIncorrectLogin(String login) {
         User user = new User();
         user.setEmail("test@test.ru");
-        user.setLogin(" ");
+        user.setLogin(login);
         user.setName("test");
         user.setBirthday(LocalDate.of(2000,01,01));
         UserController userController = new UserController();
@@ -61,10 +67,11 @@ class UserControllerTest {
     }
 
     @Test
-    void userCreationTestWithIncorrectName() throws ValidationException {
+    void userCreationTestWithIncorrectName() throws ValidationException, UserAlreadyExistException {
         User user = new User();
         user.setEmail("test@test.ru");
         user.setLogin("test");
+        user.setName("test");
         user.setBirthday(LocalDate.of(2000,01,01));
         UserController userController = new UserController();
         userController.addUser(user);
@@ -74,7 +81,7 @@ class UserControllerTest {
     }
 
     @Test
-    void userCreationTestWithIncorrectBirthday() throws ValidationException {
+    void userCreationTestWithIncorrectBirthday() {
         User user = new User();
         user.setEmail("test@test.ru");
         user.setLogin("test");
@@ -87,6 +94,67 @@ class UserControllerTest {
                     userController.addUser(user);
                 });
         String expectedMessage = "Дата рождения не может быть в будущем";
+        String message = ex.getMessage();
+        assertEquals(expectedMessage, message);
+    }
+
+    @Test
+    void userCreationTestWithAlreadyExistEmail() {
+        User user1 = new User();
+        user1.setEmail("test@test.ru");
+        user1.setLogin("user1");
+        user1.setName("test");
+        user1.setBirthday(LocalDate.of(2000, 01, 01));
+        User user2 = new User();
+        user2.setEmail("test@test.ru");
+        user2.setLogin("user2");
+        user2.setName("test");
+        user2.setBirthday(LocalDate.of(2000, 01, 01));
+        UserController userController = new UserController();
+        UserAlreadyExistException ex = assertThrows(
+                UserAlreadyExistException.class,
+                () -> {
+                    userController.addUser(user1);
+                    userController.addUser(user2);
+                });
+        String expectedMessage = "Пользователь уже существует: email=" + user1.getEmail();
+        String message = ex.getMessage();
+        assertEquals(expectedMessage, message);
+    }
+
+    @Test
+    void userUpdateTestWithCorrectInput() throws UserAlreadyExistException, ValidationException, UserNotFoundException {
+        User user = new User();
+        user.setEmail("test@test.ru");
+        user.setLogin("test");
+        user.setName("test");
+        user.setBirthday(LocalDate.of(2000,01,01));
+        UserController userController = new UserController();
+        userController.addUser(user);
+        user.setName("updated");
+        userController.updateUser(user);
+        User updated = userController.getUsers().get(0);
+        String expectedName = user.getName();
+        String name = updated.getName();
+        assertEquals(expectedName, name);
+    }
+
+    @Test
+    void userUpdateTestWithIncorrectId() throws UserAlreadyExistException, ValidationException {
+        User user = new User();
+        user.setEmail("test@test.ru");
+        user.setLogin("test");
+        user.setName("test");
+        user.setBirthday(LocalDate.of(2000,01,01));
+        UserController userController = new UserController();
+        userController.addUser(user);
+        UserNotFoundException ex = assertThrows(
+                UserNotFoundException.class,
+                () -> {
+                    user.setId(2);
+                    userController.updateUser(user);
+                });
+        String expectedMessage = "Не найден: id=" + user.getId() + ", login=" + user.getLogin();
         String message = ex.getMessage();
         assertEquals(expectedMessage, message);
     }

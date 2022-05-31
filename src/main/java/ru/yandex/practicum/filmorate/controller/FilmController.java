@@ -17,12 +17,13 @@ import java.util.Map;
 public class FilmController {
 
     private final Map<Integer, Film> films = new HashMap<>();
+    private int id;
 
     @PostMapping("/films")
     public Film addFilm(@RequestBody Film film) throws ValidationException {
         validate(film);
-        film.setId(1);
-        films.put(1, film);
+        film.setId(++id);
+        films.put(film.getId(), film);
         log.info("Добавлен элемент: {}", film.getName());
         return film;
     }
@@ -46,7 +47,7 @@ public class FilmController {
 
     private void validate(Film film) throws ValidationException {
         ValidationException ex;
-        if (film.getName() == null) {
+        if (film.getName().isEmpty()) {
             ex = new ValidationException("Название не может быть пустым");
             log.error(ex.getMessage());
             throw ex;
@@ -61,7 +62,7 @@ public class FilmController {
             log.error(ex.getMessage());
             throw ex;
         }
-        if (film.getDuration() < 0)  {
+        if (film.getDuration() <= 0)  {
             ex = new ValidationException("Продолжительность фильма должна быть положительной.");
             log.error(ex.getMessage());
             throw ex;

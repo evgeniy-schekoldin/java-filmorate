@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -28,6 +30,7 @@ class FilmControllerTest {
     @Test
     void filmCreationTestWithIncorrectName() {
         Film film = new Film();
+        film.setName("");
         film.setDescription("test");
         film.setReleaseDate(LocalDate.of(2000,01,01));
         film.setDuration(100);
@@ -80,13 +83,14 @@ class FilmControllerTest {
         assertEquals(expectedMessage, message);
     }
 
-    @Test
-    void filmCreationTestWithIncorrectDuration() {
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    void filmCreationTestWithIncorrectDuration(int duration) {
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
         film.setReleaseDate(LocalDate.of(2000,01,01));
-        film.setDuration(-1);
+        film.setDuration(duration);
         FilmController filmController = new FilmController();
         ValidationException ex = assertThrows(
                 ValidationException.class,
