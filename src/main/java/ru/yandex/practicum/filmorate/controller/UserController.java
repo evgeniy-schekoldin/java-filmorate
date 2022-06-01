@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserIdGenerator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,8 +18,10 @@ import java.util.Map;
 @RestController
 public class UserController {
 
-    private Map<Integer, User> users = new HashMap<>();
-    private int id;
+    private final static String AT_SYMBOL = "@";
+    private final static String SPACE_SYMBOL = " ";
+
+    private final Map<Long, User> users = new HashMap<>();
 
     @PostMapping("/users")
     public User addUser(@RequestBody User user) throws ValidationException, UserAlreadyExistException {
@@ -27,7 +30,7 @@ public class UserController {
             log.error("Пользователь уже существует: email={}", user.getEmail());
             throw new UserAlreadyExistException(user.getEmail());
         }
-        user.setId(++id);
+        user.setId(UserIdGenerator.generate());
         users.put(user.getId(), user);
         log.info("Добавлен пользотваель c id={}, login={}", user.getId(), user.getLogin());
         return user;
@@ -52,12 +55,12 @@ public class UserController {
 
     private void validate(User user) throws ValidationException {
         ValidationException ex;
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+        if (user.getEmail().isEmpty() || !user.getEmail().contains(AT_SYMBOL)) {
             ex = new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
             log.error(ex.getMessage());
             throw ex;
         }
-        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+        if (user.getLogin().isEmpty() || user.getLogin().contains(SPACE_SYMBOL)) {
             ex = new ValidationException("Логин не может быть пустым и содержать пробелы");
             log.error(ex.getMessage());
             throw ex;
