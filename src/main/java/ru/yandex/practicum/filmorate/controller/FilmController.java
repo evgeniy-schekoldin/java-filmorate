@@ -19,6 +19,7 @@ public class FilmController {
 
     private final static int MAX_FILM_DESCRIPTION_LENGTH = 200;
     private final static LocalDate VALID_FILM_RELEASE_DATE_FROM = LocalDate.of(1966, 12, 28);
+    private final static int MIN_FILM_DURATION = 1;
 
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -65,7 +66,7 @@ public class FilmController {
             log.error(ex.getMessage());
             throw ex;
         }
-        if (film.getDuration() <= 0) {
+        if (film.getDuration() < MIN_FILM_DURATION) {
             ex = new ValidationException("Продолжительность фильма должна быть положительной.");
             log.error(ex.getMessage());
             throw ex;
