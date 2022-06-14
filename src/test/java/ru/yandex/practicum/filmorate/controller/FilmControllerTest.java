@@ -40,18 +40,16 @@ class FilmControllerTest {
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Название не может быть пустым";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
     void filmCreationTestWithIncorrectDescription() {
+        String invalidDescription = "Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
+        "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
+                "который за время «своего отсутствия», стал кандидатом Коломбани.";
         Film film = new Film();
         film.setName("test");
-        film.setDescription("Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
-                "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
-                "который за время «своего отсутствия», стал кандидатом Коломбани.");
+        film.setDescription(invalidDescription);
         film.setReleaseDate(LocalDate.of(2000,01,01));
         film.setDuration(100);
         FilmController filmController = new FilmController();
@@ -60,17 +58,15 @@ class FilmControllerTest {
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Максимальная длина описания — 200 символов";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
     void filmCreationTestWithIncorrectReleaseDate() {
+        LocalDate invalidDate = LocalDate.of(1900,1,1);
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
-        film.setReleaseDate(LocalDate.of(1500,01,01));
+        film.setReleaseDate(invalidDate);
         film.setDuration(100);
         FilmController filmController = new FilmController();
         ValidationException ex = assertThrows(
@@ -78,28 +74,22 @@ class FilmControllerTest {
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Дата релиза — не раньше 28 декабря 1985 года";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1})
-    void filmCreationTestWithIncorrectDuration(int duration) {
+    void filmCreationTestWithIncorrectDuration(int invalidDuration) {
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
         film.setReleaseDate(LocalDate.of(2000,01,01));
-        film.setDuration(duration);
+        film.setDuration(invalidDuration);
         FilmController filmController = new FilmController();
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Продолжительность фильма должна быть положительной.";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
 }

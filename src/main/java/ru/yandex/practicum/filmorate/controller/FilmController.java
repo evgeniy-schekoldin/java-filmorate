@@ -57,7 +57,7 @@ public class FilmController {
             throw ex;
         }
         if (film.getDescription().length() > MAX_FILM_DESCRIPTION_LENGTH) {
-            ex = new ValidationException("Максимальная длина описания — 200 символов");
+            ex = new ValidationException("Максимальная длина описания — " + MAX_FILM_DESCRIPTION_LENGTH + " символов");
             log.error(ex.getMessage());
             throw ex;
         }

@@ -30,9 +30,9 @@ class UserControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings={"test.ru", ""})
-    void userCreationTestWithIncorrectEmail(String email) {
+    void userCreationTestWithIncorrectEmail(String invalidEmail) {
         User user = new User();
-        user.setEmail(email);
+        user.setEmail(invalidEmail);
         user.setLogin("test");
         user.setName("test");
         user.setBirthday(LocalDate.of(2000,01,01));
@@ -42,17 +42,14 @@ class UserControllerTest {
                 () -> {
                     userController.addUser(user);
                 });
-        String expectedMessage = "Электронная почта не может быть пустой и должна содержать символ @";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @ParameterizedTest
     @ValueSource(strings={"", "lo gin"})
-    void userCreationTestWithIncorrectLogin(String login) {
+    void userCreationTestWithIncorrectLogin(String invalidLogin) {
         User user = new User();
         user.setEmail("test@test.ru");
-        user.setLogin(login);
+        user.setLogin(invalidLogin);
         user.setName("test");
         user.setBirthday(LocalDate.of(2000,01,01));
         UserController userController = new UserController();
@@ -61,9 +58,6 @@ class UserControllerTest {
                 () -> {
                     userController.addUser(user);
                 });
-        String expectedMessage = "Логин не может быть пустым и содержать пробелы";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
@@ -71,7 +65,7 @@ class UserControllerTest {
         User user = new User();
         user.setEmail("test@test.ru");
         user.setLogin("test");
-        user.setName("test");
+        user.setName("");
         user.setBirthday(LocalDate.of(2000,01,01));
         UserController userController = new UserController();
         userController.addUser(user);
@@ -82,20 +76,18 @@ class UserControllerTest {
 
     @Test
     void userCreationTestWithIncorrectBirthday() {
+        LocalDate invalidBirthday = LocalDate.of(2050,1,1);
         User user = new User();
         user.setEmail("test@test.ru");
         user.setLogin("test");
         user.setName("test");
-        user.setBirthday(LocalDate.of(2050, 01, 01));
+        user.setBirthday(invalidBirthday);
         UserController userController = new UserController();
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     userController.addUser(user);
                 });
-        String expectedMessage = "Дата рождения не может быть в будущем";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
@@ -117,9 +109,6 @@ class UserControllerTest {
                     userController.addUser(user1);
                     userController.addUser(user2);
                 });
-        String expectedMessage = "Пользователь уже существует: email=" + user1.getEmail();
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
@@ -154,9 +143,6 @@ class UserControllerTest {
                     user.setId(2);
                     userController.updateUser(user);
                 });
-        String expectedMessage = "Не найден: id=" + user.getId() + ", login=" + user.getLogin();
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
 }
