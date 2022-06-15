@@ -1,76 +1,61 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmIdGenerator;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@Slf4j
 @RestController
 public class FilmController {
 
-    private final static int MAX_FILM_DESCRIPTION_LENGTH = 200;
-    private final static LocalDate VALID_FILM_RELEASE_DATE_FROM = LocalDate.of(1966, 12, 28);
-    private final static int MIN_FILM_DURATION = 1;
+    FilmStorage filmStorage;
+    FilmService filmService;
 
-    private final Map<Long, Film> films = new HashMap<>();
+    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+    }
 
     @PostMapping("/films")
     public Film addFilm(@RequestBody Film film) throws ValidationException {
-        validate(film);
-        film.setId(FilmIdGenerator.generate());
-        films.put(film.getId(), film);
-        log.info("Добавлен элемент: {}", film.getName());
-        return film;
+        return filmStorage.addFilm(film);
     }
 
     @PutMapping("/films")
     public Film updateFilm(@RequestBody Film film) throws FilmNotFoundException, ValidationException {
-        validate(film);
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            log.info("Обновлен элемент: {}", film.getName());
-            return film;
-        }
-        log.error("Не найден элемент id={}, name={}", film.getId(), film.getName());
-        throw new FilmNotFoundException(film);
+        return filmStorage.updateFilm(film);
     }
 
     @GetMapping("/films")
     public List<Film> getFilms() {
-        return new ArrayList<>(films.values());
+        return filmStorage.getFilms();
     }
 
-    private void validate(Film film) throws ValidationException {
-        ValidationException ex;
-        if (film.getName().isEmpty()) {
-            ex = new ValidationException("Название не может быть пустым");
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getDescription().length() > MAX_FILM_DESCRIPTION_LENGTH) {
-            ex = new ValidationException("Максимальная длина описания — " + MAX_FILM_DESCRIPTION_LENGTH + " символов");
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getReleaseDate().isBefore(VALID_FILM_RELEASE_DATE_FROM)) {
-            ex = new ValidationException("Дата релиза — не раньше " + VALID_FILM_RELEASE_DATE_FROM);
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getDuration() < MIN_FILM_DURATION) {
-            ex = new ValidationException("Продолжительность фильма должна быть положительной.");
-            log.error(ex.getMessage());
-            throw ex;
-        }
+    @GetMapping("/films/{id}")
+    public Film GetFilmById(@PathVariable long id) throws FilmNotFoundException {
+        return filmStorage.getFilm(id);
+    }
+
+    @PutMapping("/films/{id}/like/{userId}")
+    public void addRate(@PathVariable long id,
+                        @PathVariable long userId) throws FilmNotFoundException, UserNotFoundException {
+        filmService.addRate(id, userId);
+    }
+
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void removeRate(@PathVariable long id,
+                           @PathVariable long userId) throws FilmNotFoundException, UserNotFoundException {
+        filmService.removeRate(id, userId);
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> getMostRated(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getMostRated(count);
     }
 
 }
