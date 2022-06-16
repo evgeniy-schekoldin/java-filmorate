@@ -14,20 +14,35 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    UserStorage userStorage;
+    private final UserStorage userStorage;
 
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
-    public void addFriend(long id, long friendId) throws UserNotFoundException {
+    public User addUser(User user) {
+        return userStorage.addUser(user);
+    }
+
+    public User updateUser(User user) {
+        return userStorage.updateUser(user);
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getUsers();
+    }
+
+    public User GetUserById(long id) throws UserNotFoundException {
+        return userStorage.getUser(id);
+    }
+
+    public void addFriend(long id, long friendId) {
         userStorage.getUser(id).addFriend(userStorage.getUser(friendId).getId());
         userStorage.getUser(friendId).addFriend(id);
         log.info("Добавление в друзья id={}, friendId={}", id, friendId);
-
     }
 
-    public void deleteFriend(long id, long friendId) throws UserNotFoundException {
+    public void deleteFriend(long id, long friendId) {
         if (userStorage.getUser(id).getFriends().contains(friendId)) {
             userStorage.getUser(id).removeFriend(friendId);
             userStorage.getUser(friendId).removeFriend(id);
@@ -35,24 +50,16 @@ public class UserService {
         }
     }
 
-    public List<User> getFriends(long id) throws UserNotFoundException {
+    public List<User> getFriends(long id) {
         Set<Long> friendsIds = userStorage.getUser(id).getFriends();
-        return friendsIds.stream().map(this::tryGetUser).collect(Collectors.toList());
+        return friendsIds.stream().map(userStorage::getUser).collect(Collectors.toList());
     }
 
-    public List<User> getCommonFriends(long id, long otherId) throws UserNotFoundException {
+    public List<User> getCommonFriends(long id, long otherId) {
         Set<Long> friends = userStorage.getUser(id).getFriends();
         Set<Long> otherFriends = userStorage.getUser(otherId).getFriends();
         List<Long> commonFriends = friends.stream().filter(otherFriends::contains).collect(Collectors.toList());
-        return commonFriends.stream().map(this::tryGetUser).collect(Collectors.toList());
-    }
-
-    private User tryGetUser(long id) {
-        try {
-            return userStorage.getUser(id);
-        } catch (Exception e) {
-            return null;
-        }
+        return commonFriends.stream().map(userStorage::getUser).collect(Collectors.toList());
     }
 
 }

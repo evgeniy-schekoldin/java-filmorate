@@ -13,14 +13,14 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
-    private Set<Long> rated = new HashSet<>();
+    private Set<Long> likes = new HashSet<>();
 
     public void addRate(long id) {
-        rated.add(id);
+        likes.add(id);
     }
 
     public void removeRate(long id) {
-        rated.remove(id);
+        likes.remove(id);
     }
 
 }

@@ -6,39 +6,36 @@ import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
 
 @RestController
 public class UserController {
 
-    UserStorage userStorage;
-    UserService userService;
+    private final UserService userService;
 
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping("/users")
     public User addUser(@RequestBody User user) throws ValidationException, UserAlreadyExistException {
-        return userStorage.addUser(user);
+        return userService.addUser(user);
     }
 
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) throws ValidationException, UserNotFoundException {
-        return userStorage.updateUser(user);
+        return userService.updateUser(user);
     }
 
     @GetMapping("/users")
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @GetMapping("/users/{id}")
     public User GetUserById(@PathVariable long id) throws UserNotFoundException {
-        return userStorage.getUser(id);
+        return userService.GetUserById(id);
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")

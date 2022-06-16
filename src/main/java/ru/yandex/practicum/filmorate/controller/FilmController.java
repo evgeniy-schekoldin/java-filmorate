@@ -6,39 +6,36 @@ import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
 
 @RestController
 public class FilmController {
 
-    FilmStorage filmStorage;
-    FilmService filmService;
+    private final FilmService filmService;
 
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @PostMapping("/films")
     public Film addFilm(@RequestBody Film film) throws ValidationException {
-        return filmStorage.addFilm(film);
+        return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
     public Film updateFilm(@RequestBody Film film) throws FilmNotFoundException, ValidationException {
-        return filmStorage.updateFilm(film);
+        return filmService.updateFilm(film);
     }
 
     @GetMapping("/films")
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        return filmService.getFilms();
     }
 
     @GetMapping("/films/{id}")
     public Film GetFilmById(@PathVariable long id) throws FilmNotFoundException {
-        return filmStorage.getFilm(id);
+        return filmService.GetFilmById(id);
     }
 
     @PutMapping("/films/{id}/like/{userId}")

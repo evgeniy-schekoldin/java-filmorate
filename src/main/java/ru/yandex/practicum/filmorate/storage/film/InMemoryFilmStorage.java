@@ -3,35 +3,37 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmIdGenerator;
+import ru.yandex.practicum.filmorate.service.film.FilmValidator;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private final static int MAX_FILM_DESCRIPTION_LENGTH = 200;
-    private final static LocalDate VALID_FILM_RELEASE_DATE_FROM = LocalDate.of(1966, 12, 28);
-    private final static int MIN_FILM_DURATION = 1;
-
+    private final FilmIdGenerator filmIdGenerator;
+    private final FilmValidator filmValidator;
     private final Map<Long, Film> films = new HashMap<>();
 
+    public InMemoryFilmStorage(FilmIdGenerator filmIdGenerator, FilmValidator filmValidator) {
+        this.filmIdGenerator = filmIdGenerator;
+        this.filmValidator = filmValidator;
+    }
+
     @Override
-    public Film addFilm(Film film) throws ValidationException {
-        validate(film);
-        film.setId(FilmIdGenerator.generate());
+    public Film addFilm(Film film) {
+        filmValidator.validate(film);
+        film.setId(filmIdGenerator.generate());
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}, присвоен id={}", film.getName(), film.getId());
         return film;
     }
 
     @Override
-    public Film updateFilm(Film film) throws ValidationException, FilmNotFoundException {
-        validate(film);
+    public Film updateFilm(Film film) {
+        filmValidator.validate(film);
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
             log.info("Обновлен фильм: {}, id={}", film.getName(), film.getId());
@@ -47,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilm(long id) throws FilmNotFoundException {
+    public Film getFilm(long id) {
         if (!films.containsKey(id)) {
             throw new FilmNotFoundException(id);
         }
@@ -57,30 +59,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getFilms() {
         return new ArrayList<>(films.values());
-    }
-
-    private void validate(Film film) throws ValidationException {
-        ValidationException ex;
-        if (film.getName().isEmpty()) {
-            ex = new ValidationException("Название фильма не может быть пустым");
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getDescription().length() > MAX_FILM_DESCRIPTION_LENGTH) {
-            ex = new ValidationException("Максимальная длина описания — " + MAX_FILM_DESCRIPTION_LENGTH + " символов");
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getReleaseDate().isBefore(VALID_FILM_RELEASE_DATE_FROM)) {
-            ex = new ValidationException("Дата релиза — не раньше " + VALID_FILM_RELEASE_DATE_FROM);
-            log.error(ex.getMessage());
-            throw ex;
-        }
-        if (film.getDuration() < MIN_FILM_DURATION) {
-            ex = new ValidationException("Продолжительность фильма не может быть отрицательной");
-            log.error(ex.getMessage());
-            throw ex;
-        }
     }
 
 }

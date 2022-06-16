@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class FilmNotFoundException extends Exception {
+public class FilmNotFoundException extends RuntimeException {
 
     public FilmNotFoundException(long id) {
-        super("Не найден элемент: id=" + id);
+        super("Фильм не найден: id=" + id);
     }
 
 }
