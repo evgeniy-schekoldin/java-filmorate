@@ -1,10 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-public class UserAlreadyExistException extends Exception {
+public class UserAlreadyExistException extends RuntimeException  {
 
     public UserAlreadyExistException(String email) {
         super("Пользователь уже существует: email=" + email);

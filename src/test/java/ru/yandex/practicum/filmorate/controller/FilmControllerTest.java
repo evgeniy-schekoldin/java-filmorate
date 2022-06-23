@@ -5,6 +5,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.film.FilmIdGenerator;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmValidator;
+import ru.yandex.practicum.filmorate.service.user.UserIdGenerator;
+import ru.yandex.practicum.filmorate.service.user.UserValidator;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 
@@ -15,12 +24,15 @@ class FilmControllerTest {
 
     @Test
     void filmCreationTestWithCorrectInput() throws ValidationException {
+        FilmStorage filmStorage = new InMemoryFilmStorage(new FilmIdGenerator(), new FilmValidator());
+        UserStorage userStorage = new InMemoryUserStorage(new UserIdGenerator(), new UserValidator());
+        FilmService filmService = new FilmService(filmStorage, userStorage);
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
-        film.setReleaseDate(LocalDate.of(2000,01,01));
+        film.setReleaseDate(LocalDate.of(2000, 01, 01));
         film.setDuration(100);
-        FilmController filmController = new FilmController();
+        FilmController filmController = new FilmController(filmService);
         filmController.addFilm(film);
         int expectedSize = 1;
         int size = filmController.getFilms().size();
@@ -29,77 +41,79 @@ class FilmControllerTest {
 
     @Test
     void filmCreationTestWithIncorrectName() {
+        FilmStorage filmStorage = new InMemoryFilmStorage(new FilmIdGenerator(), new FilmValidator());
+        UserStorage userStorage = new InMemoryUserStorage(new UserIdGenerator(), new UserValidator());
+        FilmService filmService = new FilmService(filmStorage, userStorage);
         Film film = new Film();
         film.setName("");
         film.setDescription("test");
-        film.setReleaseDate(LocalDate.of(2000,01,01));
+        film.setReleaseDate(LocalDate.of(2000, 01, 01));
         film.setDuration(100);
-        FilmController filmController = new FilmController();
+        FilmController filmController = new FilmController(filmService);
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Название не может быть пустым";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
     void filmCreationTestWithIncorrectDescription() {
+        FilmStorage filmStorage = new InMemoryFilmStorage(new FilmIdGenerator(), new FilmValidator());
+        UserStorage userStorage = new InMemoryUserStorage(new UserIdGenerator(), new UserValidator());
+        FilmService filmService = new FilmService(filmStorage, userStorage);
+        String invalidDescription = "Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
+        "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
+                "который за время «своего отсутствия», стал кандидатом Коломбани.";
         Film film = new Film();
         film.setName("test");
-        film.setDescription("Пятеро друзей ( комик-группа «Шарло»), приезжают в город Бризуль. Здесь они хотят " +
-                "разыскать господина Огюста Куглова, который задолжал им деньги, а именно 20 миллионов. о Куглов, " +
-                "который за время «своего отсутствия», стал кандидатом Коломбани.");
+        film.setDescription(invalidDescription);
         film.setReleaseDate(LocalDate.of(2000,01,01));
         film.setDuration(100);
-        FilmController filmController = new FilmController();
+        FilmController filmController = new FilmController(filmService);
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Максимальная длина описания — 200 символов";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @Test
     void filmCreationTestWithIncorrectReleaseDate() {
+        FilmStorage filmStorage = new InMemoryFilmStorage(new FilmIdGenerator(), new FilmValidator());
+        UserStorage userStorage = new InMemoryUserStorage(new UserIdGenerator(), new UserValidator());
+        FilmService filmService = new FilmService(filmStorage, userStorage);
+        LocalDate invalidDate = LocalDate.of(1900,1,1);
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
-        film.setReleaseDate(LocalDate.of(1500,01,01));
+        film.setReleaseDate(invalidDate);
         film.setDuration(100);
-        FilmController filmController = new FilmController();
+        FilmController filmController = new FilmController(filmService);
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Дата релиза — не раньше 28 декабря 1985 года";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1})
-    void filmCreationTestWithIncorrectDuration(int duration) {
+    void filmCreationTestWithIncorrectDuration(int invalidDuration) {
+        FilmStorage filmStorage = new InMemoryFilmStorage(new FilmIdGenerator(), new FilmValidator());
+        UserStorage userStorage = new InMemoryUserStorage(new UserIdGenerator(), new UserValidator());
+        FilmService filmService = new FilmService(filmStorage, userStorage);
         Film film = new Film();
         film.setName("test");
         film.setDescription("test");
         film.setReleaseDate(LocalDate.of(2000,01,01));
-        film.setDuration(duration);
-        FilmController filmController = new FilmController();
+        film.setDuration(invalidDuration);
+        FilmController filmController = new FilmController(filmService);
         ValidationException ex = assertThrows(
                 ValidationException.class,
                 () -> {
                     filmController.addFilm(film);
                 });
-        String expectedMessage = "Продолжительность фильма должна быть положительной.";
-        String message = ex.getMessage();
-        assertEquals(expectedMessage, message);
     }
 
 }
