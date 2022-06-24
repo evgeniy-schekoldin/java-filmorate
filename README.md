@@ -28,7 +28,7 @@ WHERE fr.user_id='1'
 SELECT u.name
 FROM friends_relations AS fr
 LEFT JOIN users as u ON fr.friend_id=u.id
-WHERE fr.user_id='1' OR fr.user_id='2'
+WHERE fr.user_id='x' OR fr.user_id='y'
 GROUP BY u.name
 HAVING COUNT(u.name) > 1
 ```
