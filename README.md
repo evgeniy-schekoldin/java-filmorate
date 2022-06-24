@@ -20,7 +20,7 @@ LIMIT N
 SELECT u.name
 FROM friends_relations AS fr
 LEFT JOIN users as u ON u.id=fr.friend_id
-WHERE fr.user_id='1'
+WHERE fr.user_id='x'
 ```
 
 #### Получение списка общих друзей двух пользователей по их id
