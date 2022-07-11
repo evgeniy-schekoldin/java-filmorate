@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 
 @Data
-public class ErrorResponse {
-    private final String error;
+public class Mpa {
+    private int id;
+    private String name;
 }

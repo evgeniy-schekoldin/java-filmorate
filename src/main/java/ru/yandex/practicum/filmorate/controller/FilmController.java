@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.util.List;
@@ -19,12 +18,12 @@ public class FilmController {
     }
 
     @PostMapping("/films")
-    public Film addFilm(@RequestBody Film film) throws ValidationException {
+    public Film addFilm(@RequestBody Film film) {
         return filmService.addFilm(film);
     }
 
     @PutMapping("/films")
-    public Film updateFilm(@RequestBody Film film) throws FilmNotFoundException, ValidationException {
+    public Film updateFilm(@RequestBody Film film) {
         return filmService.updateFilm(film);
     }
 
@@ -34,25 +33,43 @@ public class FilmController {
     }
 
     @GetMapping("/films/{id}")
-    public Film GetFilmById(@PathVariable long id) throws FilmNotFoundException {
-        return filmService.GetFilmById(id);
+    public Film GetFilmById(@PathVariable long id) {
+        return filmService.GetFilm(id);
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public void addRate(@PathVariable long id,
-                        @PathVariable long userId) throws FilmNotFoundException, UserNotFoundException {
-        filmService.addRate(id, userId);
+    public void addRate(@PathVariable long id, @PathVariable long userId) {
+        filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")
-    public void removeRate(@PathVariable long id,
-                           @PathVariable long userId) throws FilmNotFoundException, UserNotFoundException {
-        filmService.removeRate(id, userId);
+    public void removeRate(@PathVariable long id, @PathVariable long userId)  {
+        filmService.removeLike(id, userId);
     }
 
     @GetMapping("/films/popular")
     public List<Film> getMostRated(@RequestParam(defaultValue = "10") int count) {
         return filmService.getMostRated(count);
+    }
+
+    @GetMapping("/mpa")
+    public List<Mpa> getMpa() {
+        return filmService.getMpas();
+    }
+
+    @GetMapping("/mpa/{id}")
+    public Mpa getMpaById(@PathVariable int id) {
+        return filmService.getMpa(id);
+    }
+
+    @GetMapping("/genres")
+    public List<Genre> getGenres() {
+        return filmService.getGenres();
+    }
+
+    @GetMapping("/genres/{id}")
+    public Genre getGenreById(@PathVariable int id) {
+        return filmService.getGenre(id);
     }
 
 }
