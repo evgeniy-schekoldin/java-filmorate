@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -36,6 +37,9 @@ public class FilmValidator {
             ex = new ValidationException("Продолжительность фильма не может быть отрицательной");
             log.error(ex.getMessage());
             throw ex;
+        }
+        if (film.getGenres()!=null) {
+            film.setGenres(film.getGenres().stream().distinct().collect(Collectors.toList()));
         }
     }
 
